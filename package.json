@@ -1,0 +1,54 @@
+{
+  "name": "pm-sdk-ts",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for the prediction market platform on Monad — CLOB trading, Gamma metadata, Data API, WebSocket streams, and Safe relayer support",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run --exclude tests/live/**",
+    "test:live": "vitest run tests/live",
+    "lint": "biome check src tests examples",
+    "format": "biome format --write src tests examples",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "^2.46.3",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.13",
+    "@types/node": "^24.10.9",
+    "@types/ws": "^8.18.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chainupcloud/pm-sdk-ts.git"
+  },
+  "keywords": [
+    "prediction-market",
+    "clob",
+    "monad",
+    "trading",
+    "sdk"
+  ]
+}

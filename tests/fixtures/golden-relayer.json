@@ -1,0 +1,23 @@
+[
+  {
+    "name": "safe_create_zero_payment",
+    "digest": "0x709207967227fc39d749af43bd5a9234fc9396b76835756f3f17739e9062cccf",
+    "signature": "0x8f74a3a2c6d793c50f6f27a9b48784a026e41c6c19ec289be06b3f62dfe45c861d7406fc0c53e41e0cbc1291b17e64729ae19a0aa75bc8b91bc499e328d37b2600",
+    "signer": "0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F",
+    "notes": "Zero paymentToken/payment/paymentReceiver — matches mm V2 prod call site."
+  },
+  {
+    "name": "safe_tx_usdc_approve_nonce0",
+    "digest": "0x3f62f5a45413a55e120b6fac5a78ae96d209acb053d2d9dd51d808bafcf6c541",
+    "signature": "0xe68510c3592ab99885901f502997efaa67e4f1da87ce3a1c3762558bbc4e992556006ed0319126427fc36baacaec05527a0eadecd1ff6df8432fbd82dd5ea6d501",
+    "signer": "0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F",
+    "notes": "USDC.approve(exchange, MaxUint256) Safe tx, nonce 0."
+  },
+  {
+    "name": "safe_tx_usdc_mint_nonce7",
+    "digest": "0x2dec6fe1d799011e7d07730769a9f1faa56c115b2a14ecdcabda90fb3c4f279a",
+    "signature": "0x6459c08bdd060a339155728937792bb2b202d573cb13de622b2b3df1a3143d3f3fd7c0fc6f50e28d81addae903764e42d027cc5d29d2728a824a2eee56e9697000",
+    "signer": "0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F",
+    "notes": "USDC.mint(safe, 1_000_000_000_000) Safe tx, nonce 7."
+  }
+]
