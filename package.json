@@ -1,7 +1,7 @@
 {
   "name": "pm-sdk-ts",
   "version": "0.1.0",
-  "description": "TypeScript SDK for the prediction market platform on Monad — CLOB trading, Gamma metadata, Data API, WebSocket streams, and Safe relayer support",
+  "description": "TypeScript SDK for the prediction market platform on Monad \u2014 CLOB trading, Gamma metadata, Data API, WebSocket streams, and Safe relayer support",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -22,11 +22,12 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest run --exclude tests/live/**",
-    "test:live": "vitest run tests/live",
+    "test": "vitest run",
+    "test:live": "vitest run --config vitest.live.config.ts",
     "lint": "biome check src tests examples",
     "format": "biome format --write src tests examples",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "example": "node --experimental-strip-types --no-warnings"
   },
   "dependencies": {
     "viem": "^2.46.3",

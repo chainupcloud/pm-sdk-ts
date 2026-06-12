@@ -82,6 +82,7 @@ export class PredictClient {
       baseUrl: endpoints.clob,
       signer: this.signer,
       fundingAddress,
+      negRiskExchange: this.network.contracts.negRiskCtfExchange,
       ...(config.credentials ? { credentials: config.credentials } : {}),
     });
     if (!endpoints.gamma || !endpoints.data || !endpoints.ws || !endpoints.relayer) {

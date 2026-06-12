@@ -26,6 +26,7 @@ export * from "./endpoints.js";
 export * from "./errors.js";
 export { GammaClient } from "./gamma/client.js";
 export * as GammaTypes from "./gamma/types.js";
+export { marketClobTokenIds, parseJsonArrayString } from "./gamma/types.js";
 export * from "./http.js";
 export * from "./math.js";
 export * from "./networks.js";

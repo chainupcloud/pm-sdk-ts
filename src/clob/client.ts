@@ -110,16 +110,28 @@ export interface ClobClientOptions {
    * `signer.address`; required for L2 calls when no signer is configured.
    */
   signerAddress?: Address;
+  /**
+   * Neg-risk CTF exchange address. When set, the limitOrder/marketOrder helpers
+   * auto-detect neg-risk tokens (via `GET /book` `neg_risk`) and sign against this
+   * contract instead of the standard exchange — required for multi-outcome (neg-risk)
+   * markets, whose on-chain verifier is a different contract. Neither pm-sdk-go nor
+   * predict-rs supports this; both fail with INVALID_SIGNATURE on neg-risk markets.
+   */
+  negRiskExchange?: Address;
 }
 
 /** Per-order args for the convenience helpers; tick size + fee rate are auto-fetched. */
 export type ClobLimitOrderArgs = Omit<LimitOrderArgs, "feeRateBps" | "minimumTickSize"> & {
   /** Override the fee rate; defaults to `GET /fee-rate` for the token. */
   feeRateBps?: number | bigint;
+  /** Force the neg-risk exchange domain; defaults to auto-detect via `GET /book`. */
+  negRisk?: boolean;
 };
 
 export type ClobMarketOrderArgs = Omit<MarketOrderArgs, "feeRateBps" | "minimumTickSize"> & {
   feeRateBps?: number | bigint;
+  /** Force the neg-risk exchange domain; defaults to auto-detect via `GET /book`. */
+  negRisk?: boolean;
 };
 
 export class ClobClient {
@@ -127,6 +139,8 @@ export class ClobClient {
   readonly fundingAddress: Address | undefined;
   private readonly signer: PredictSigner | undefined;
   private readonly signerAddress: Address | undefined;
+  private readonly negRiskExchange: Address | undefined;
+  private readonly negRiskTokens = new Map<string, boolean>();
   private credentials: ApiCredentials | undefined;
 
   constructor(options: ClobClientOptions) {
@@ -138,6 +152,7 @@ export class ClobClient {
       throw new ValidationError("ClobClient requires `http` or `baseUrl`");
     }
     this.signer = options.signer;
+    this.negRiskExchange = options.negRiskExchange;
     this.credentials = options.credentials;
     this.fundingAddress = options.fundingAddress
       ? normalizeAddress(options.fundingAddress)
@@ -351,15 +366,21 @@ export class ClobClient {
     return decodeBalanceAllowance(await this.requestL2("GET", "/balance-allowance", { query }));
   }
 
-  /** `GET /balance-allowance/update` — force a server-side balance cache refresh. */
+  /**
+   * `GET /balance-allowance/update` — force a server-side balance cache refresh.
+   * The live deployment returns an empty body from `/update` (predict-rs still assumes
+   * the balance shape); when that happens we follow up with `GET /balance-allowance`.
+   */
   async updateBalanceAllowance(
     assetType: AssetType,
     tokenId?: string,
   ): Promise<BalanceAllowanceResponse> {
     const query = balanceAllowanceQuery(assetType, tokenId);
-    return decodeBalanceAllowance(
-      await this.requestL2("GET", "/balance-allowance/update", { query }),
-    );
+    const raw = await this.requestL2("GET", "/balance-allowance/update", { query });
+    if (typeof raw === "object" && raw !== null && !Array.isArray(raw)) {
+      return decodeBalanceAllowance(raw);
+    }
+    return this.balanceAllowance(assetType, tokenId);
   }
 
   // ─── L2 auth — orders / trades ───────────────────────────────────────────
@@ -551,13 +572,32 @@ export class ClobClient {
     return this.postOrder(signed, built.orderType, built.postOnly, built.owner);
   }
 
+  /**
+   * Whether a token belongs to a neg-risk (multi-outcome) market, per `GET /book`.
+   * Cached per token id for the client's lifetime.
+   */
+  async isNegRiskToken(tokenId: string): Promise<boolean> {
+    const cached = this.negRiskTokens.get(tokenId);
+    if (cached !== undefined) return cached;
+    const book = await this.book(tokenId);
+    const negRisk = book.neg_risk === true;
+    this.negRiskTokens.set(tokenId, negRisk);
+    return negRisk;
+  }
+
   private async buildAndSign(
     args: ClobLimitOrderArgs | ClobMarketOrderArgs,
     kind: "limit" | "market",
   ): Promise<{ built: BuiltOrder; signed: SignedOrderWire }> {
-    const signer = this.requireSigner();
+    let signer = this.requireSigner();
     const tokenId = args.tokenId.toString();
     const [tick, fee] = await Promise.all([this.tickSize(tokenId), this.feeRate(tokenId)]);
+    if (this.negRiskExchange) {
+      const negRisk = args.negRisk ?? (await this.isNegRiskToken(tokenId));
+      if (negRisk) {
+        signer = signer.withExchange(this.negRiskExchange);
+      }
+    }
     const full: Record<string, unknown> = {
       ...args,
       feeRateBps: args.feeRateBps ?? fee.fee_rate_bps,
