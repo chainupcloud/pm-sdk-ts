@@ -3,7 +3,9 @@
  *
  * Wire-format notes (parity with predict-rs `clob-client/src/types.rs`):
  * - `Side` serializes as `"BUY"` / `"SELL"`.
- * - `SignatureType` serializes as `"EOA"` / `"POLY_PROXY"` / `"POLY_GNOSIS_SAFE"`.
+ * - `SignatureType` serializes as the NUMERIC string `"0"` / `"1"` / `"2"` inside signed
+ *   orders (live-verified); `signatureTypeToWire` returns the display name, used only for
+ *   logs and non-order contexts.
  * - `scopeId` serializes as a 0x-prefixed 64-hex-char string, or the empty string when zero.
  */
 

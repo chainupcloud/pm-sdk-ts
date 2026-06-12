@@ -34,7 +34,6 @@ import {
   SignatureType as SignatureTypeEnum,
   scopeIdToWire,
   sideToUint8,
-  signatureTypeToWire,
   ZERO_ADDRESS,
 } from "./types.js";
 
@@ -250,7 +249,9 @@ export function toWireOrder(order: OrderForSigning, signature: string): SignedOr
     nonce: order.nonce.toString(),
     feeRateBps: order.feeRateBps.toString(),
     side: order.side === 0 ? "BUY" : "SELL",
-    signatureType: signatureTypeToWire(order.signatureType as SignatureType),
+    // Wire format is the NUMERIC string ("0" | "1" | "2") — verified against the live
+    // deployment by predict-rs signed_order_from and pm-sdk-go OrderSignatureType.
+    signatureType: order.signatureType.toString(),
     signature,
   };
   const scope = scopeIdToWire(order.scopeId);
