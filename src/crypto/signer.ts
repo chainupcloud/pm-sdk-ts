@@ -16,7 +16,6 @@ import { normalizeAddress, ZERO_SCOPE_ID } from "../types.js";
 import {
   CLOB_AUTH_MESSAGE,
   CLOB_AUTH_TYPES,
-  type ClobAuthMessage,
   CREATE_PROXY_TYPES,
   type CreateProxyArgs,
   clobAuthDomain,
