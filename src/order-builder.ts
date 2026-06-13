@@ -9,6 +9,7 @@
  * v ∈ {27, 28} on the wire (on-chain `ECDSA.recover` convention).
  */
 
+import { randomBytes } from "node:crypto";
 import type { OrderForSigning } from "./crypto/eip712.js";
 import { normalizeEcdsaV, type PredictSigner } from "./crypto/signer.js";
 import { ValidationError } from "./errors.js";
@@ -108,10 +109,21 @@ export interface MarketOrderArgs extends CommonOrderArgs {
   orderType?: OrderType;
 }
 
-/** Default salt: current Unix-nanosecond timestamp masked to 53 bits (IEEE-754 safe). */
+/**
+ * Default per-order salt: millisecond clock in the high bits + 64 bits of CSPRNG
+ * entropy in the low bits.
+ *
+ * `salt` is the Order struct's only distinguishing field when every other field
+ * is identical, so two same-maker orders with the same params (e.g. a
+ * `postOrders` batch that splits one order into equal chunks, all built in the
+ * same tick) MUST get different salts — otherwise they hash to the same order id
+ * and the server rejects the second as a duplicate. The previous
+ * `Date.now() * 1e6` scheme carried no sub-millisecond entropy and collided in
+ * exactly that case. The value is serialized as a decimal uint256 string on the
+ * wire, so it is intentionally not bounded to 2^53.
+ */
 export function generateSalt(): bigint {
-  const nanos = BigInt(Date.now()) * 1_000_000n;
-  return nanos & ((1n << 53n) - 1n);
+  return (BigInt(Date.now()) << 64n) | BigInt(`0x${randomBytes(8).toString("hex")}`);
 }
 
 function resolveCommon(
